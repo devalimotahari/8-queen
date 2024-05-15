@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import './App.css';
+import Board from './components/Board.jsx';
+import { solveWithGenetic, solveWithHillClimbing, solveWithLBS } from './utils/algorithms.js';
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [algorithm, setAlgorithm] = useState('');
+    const [solution, setSolution] = useState([]);
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const handleSolve = () => {
+        let result;
+        switch (algorithm) {
+            case 'LBS':
+                result = solveWithLBS();
+                break;
+            case 'HillClimbing':
+                result = solveWithHillClimbing();
+                break;
+            case 'Genetic':
+                result = solveWithGenetic();
+                break;
+            default:
+                alert('Please select an algorithm');
+                return;
+        }
+        setSolution(result);
+    };
+
+    return (
+        <div>
+            <h1>8-Queen Problem Solver</h1>
+            <div>
+                <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
+                    <option value="">Select Algorithm</option>
+                    <option value="LBS">Local Beam Search</option>
+                    <option value="HillClimbing">Hill Climbing</option>
+                    <option value="Genetic">Genetic Algorithm</option>
+                </select>
+                <button onClick={handleSolve}>Solve</button>
+            </div>
+            <Board solution={solution}/>
+        </div>
+    );
 }
 
 export default App
