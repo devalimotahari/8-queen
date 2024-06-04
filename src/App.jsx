@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import Board from './components/Board.jsx';
-import { solveWithGenetic, solveWithHillClimbing, solveWithLBS } from './utils/algorithms.js';
+import { solveWithGenetic, solveWithLBS } from './utils/algorithms.js';
 
 function App() {
     const [algorithm, setAlgorithm] = useState('');
@@ -12,12 +12,11 @@ function App() {
         switch (algorithm) {
             case 'LBS':
                 result = solveWithLBS();
-                break;
-            case 'HillClimbing':
-                result = solveWithHillClimbing();
+                console.log({ result });
                 break;
             case 'Genetic':
                 result = solveWithGenetic();
+                console.log({ result });
                 break;
             default:
                 alert('Please select an algorithm');
@@ -28,12 +27,10 @@ function App() {
 
     return (
         <div>
-            <h1>8-Queen Problem Solver</h1>
             <div>
                 <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
                     <option value="">Select Algorithm</option>
                     <option value="LBS">Local Beam Search</option>
-                    <option value="HillClimbing">Hill Climbing</option>
                     <option value="Genetic">Genetic Algorithm</option>
                 </select>
                 <button onClick={handleSolve}>Solve</button>
@@ -43,4 +40,4 @@ function App() {
     );
 }
 
-export default App
+export default App;

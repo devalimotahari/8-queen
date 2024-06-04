@@ -29,54 +29,53 @@ const getSuccessors = (state) => {
     return successors;
 };
 
-export const solveWithLBS = (beamWidth = 3) => {
+export const solveWithLBS = (beamWidth = 5) => {
     let beams = Array.from({ length: beamWidth }, () => {
         const state = Array.from({ length: 8 }, (_, i) => i);
         state.sort(() => Math.random() - 0.5);
         return state;
     });
 
+    let counter = beamWidth;
+
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         const allSuccessors = beams.flatMap(getSuccessors);
         const sortedSuccessors = allSuccessors.sort((a, b) => calculateConflicts(a) - calculateConflicts(b));
 
         beams = sortedSuccessors.slice(0, beamWidth);
 
+        counter += allSuccessors.length;
+
         if (calculateConflicts(beams[0]) === 0) {
+            console.log({ counter });
             return beams[0];
         }
     }
 };
 
-export const solveWithHillClimbing = () => {
-    let state = Array.from({ length: 8 }, (_, i) => i);
-    state.sort(() => Math.random() - 0.5);
-    let currentConflicts = calculateConflicts(state);
-
-    while (currentConflicts !== 0) {
-        let nextState = [...state];
-        let nextConflicts = currentConflicts;
-
-        for (let i = 0; i < 8; i++) {
-            for (let j = i + 1; j < 8; j++) {
-                const newState = [...state];
-                [newState[i], newState[j]] = [newState[j], newState[i]];
-                const newConflicts = calculateConflicts(newState);
-
-                if (newConflicts < nextConflicts) {
-                    nextState = newState;
-                    nextConflicts = newConflicts;
-                }
-            }
-        }
-
-        if (nextConflicts >= currentConflicts) break;
-
-        state = nextState;
-        currentConflicts = nextConflicts;
+const generateIndividual = () => {
+    let individual = Array.from({ length: 8 }, (_, i) => i);
+    for (let i = individual.length - 1; i > 0; i--) {
+        const j = getRandomInt(i + 1);
+        [individual[i], individual[j]] = [individual[j], individual[i]];
     }
+    return individual;
+};
 
-    return state;
+const crossover = (parent1, parent2) => {
+    const crossoverPoint = getRandomInt(8);
+    const child = parent1.slice(0, crossoverPoint).concat(
+        parent2.filter((gene) => !parent1.slice(0, crossoverPoint).includes(gene)),
+    );
+    return child;
+};
+
+const mutate = (individual, mutationRate) => {
+    if (Math.random() < mutationRate) {
+        const [i, j] = [getRandomInt(8), getRandomInt(8)];
+        [individual[i], individual[j]] = [individual[j], individual[i]];
+    }
 };
 
 export const solveWithGenetic = () => {
@@ -84,24 +83,7 @@ export const solveWithGenetic = () => {
     const mutationRate = 0.03;
     const maxGenerations = 1000;
 
-    const generateIndividual = () => {
-        let individual = Array.from({ length: 8 }, (_, i) => i);
-        individual.sort(() => Math.random() - 0.5);
-        return individual;
-    };
-
-    const crossover = (parent1, parent2) => {
-        const crossoverPoint = getRandomInt(8);
-        const child = parent1.slice(0, crossoverPoint).concat(parent2.slice(crossoverPoint));
-        return child;
-    };
-
-    const mutate = (individual) => {
-        if (Math.random() < mutationRate) {
-            const [i, j] = [getRandomInt(8), getRandomInt(8)];
-            [individual[i], individual[j]] = [individual[j], individual[i]];
-        }
-    };
+    let counter = 1;
 
     let population = Array.from({ length: populationSize }, generateIndividual);
 
@@ -109,22 +91,25 @@ export const solveWithGenetic = () => {
         population.sort((a, b) => calculateConflicts(a) - calculateConflicts(b));
 
         if (calculateConflicts(population[0]) === 0) {
+            console.log({ counter });
             return population[0];
         }
 
         const newPopulation = population.slice(0, populationSize / 2);
 
-        for (let i = 0; i < populationSize / 2; i++) {
+        while (newPopulation.length < populationSize) {
             const parent1 = newPopulation[getRandomInt(newPopulation.length)];
             const parent2 = newPopulation[getRandomInt(newPopulation.length)];
             const child = crossover(parent1, parent2);
-            mutate(child);
+            mutate(child, mutationRate);
             newPopulation.push(child);
+            counter += 1;
         }
 
         population = newPopulation;
     }
 
     population.sort((a, b) => calculateConflicts(a) - calculateConflicts(b));
+    console.log({ counter });
     return population[0];
 };
