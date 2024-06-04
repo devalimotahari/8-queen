@@ -1,9 +1,10 @@
 import styled from '@emotion/styled';
+import { N_QUEEN_SIZE } from '../constants.js';
 
 const BoardContainer = styled.div`
     display: grid;
-    grid-template-columns: repeat(8, 50px);
-    grid-template-rows: repeat(8, 50px);
+    grid-template-columns: repeat(${N_QUEEN_SIZE}, 50px);
+    grid-template-rows: repeat(${N_QUEEN_SIZE}, 50px);
     gap: 2px;
 `;
 
@@ -16,7 +17,7 @@ const Cell = styled.div`
 
 const Board = ({ solution }) => {
     const createBoard = () => {
-        let board = Array(8).fill(0).map(() => Array(8).fill(false));
+        let board = Array(N_QUEEN_SIZE).fill(0).map(() => Array(N_QUEEN_SIZE).fill(false));
         solution.forEach((col, row) => {
             board[row][col] = true;
         });

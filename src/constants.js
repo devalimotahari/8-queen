@@ -1,0 +1,1 @@
+export const N_QUEEN_SIZE = 8;

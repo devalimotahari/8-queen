@@ -1,3 +1,5 @@
+import { N_QUEEN_SIZE } from '../constants.js';
+
 const getRandomInt = (max) => Math.floor(Math.random() * max);
 
 const calculateConflicts = (state) => {
@@ -18,8 +20,8 @@ const calculateConflicts = (state) => {
 const getSuccessors = (state) => {
     const successors = [];
 
-    for (let i = 0; i < 8; i++) {
-        for (let j = i + 1; j < 8; j++) {
+    for (let i = 0; i < N_QUEEN_SIZE; i++) {
+        for (let j = i + 1; j < N_QUEEN_SIZE; j++) {
             const newState = [...state];
             [newState[i], newState[j]] = [newState[j], newState[i]];
             successors.push(newState);
@@ -31,7 +33,7 @@ const getSuccessors = (state) => {
 
 export const solveWithLBS = (beamWidth = 5) => {
     let beams = Array.from({ length: beamWidth }, () => {
-        const state = Array.from({ length: 8 }, (_, i) => i);
+        const state = Array.from({ length: N_QUEEN_SIZE }, (_, i) => i);
         state.sort(() => Math.random() - 0.5);
         return state;
     });
@@ -55,7 +57,7 @@ export const solveWithLBS = (beamWidth = 5) => {
 };
 
 const generateIndividual = () => {
-    let individual = Array.from({ length: 8 }, (_, i) => i);
+    let individual = Array.from({ length: N_QUEEN_SIZE }, (_, i) => i);
     for (let i = individual.length - 1; i > 0; i--) {
         const j = getRandomInt(i + 1);
         [individual[i], individual[j]] = [individual[j], individual[i]];
@@ -64,7 +66,7 @@ const generateIndividual = () => {
 };
 
 const crossover = (parent1, parent2) => {
-    const crossoverPoint = getRandomInt(8);
+    const crossoverPoint = getRandomInt(N_QUEEN_SIZE);
     const child = parent1.slice(0, crossoverPoint).concat(
         parent2.filter((gene) => !parent1.slice(0, crossoverPoint).includes(gene)),
     );
@@ -73,7 +75,7 @@ const crossover = (parent1, parent2) => {
 
 const mutate = (individual, mutationRate) => {
     if (Math.random() < mutationRate) {
-        const [i, j] = [getRandomInt(8), getRandomInt(8)];
+        const [i, j] = [getRandomInt(N_QUEEN_SIZE), getRandomInt(N_QUEEN_SIZE)];
         [individual[i], individual[j]] = [individual[j], individual[i]];
     }
 };
@@ -112,4 +114,43 @@ export const solveWithGenetic = () => {
     population.sort((a, b) => calculateConflicts(a) - calculateConflicts(b));
     console.log({ counter });
     return population[0];
+};
+
+const isSafe = (board, row, col) => {
+    // Check this column on upper side
+    for (let i = 0; i < row; i++)
+        if (board[i] === col)
+            return false;
+
+    // Check upper diagonal on left side
+    for (let i = row, j = col; i >= 0 && j >= 0; i--, j--)
+        if (board[i] === j)
+            return false;
+
+    // Check upper diagonal on right side
+    for (let i = row, j = col; i >= 0 && j < N_QUEEN_SIZE; i--, j++)
+        if (board[i] === j)
+            return false;
+
+    return true;
+};
+
+const solveCSPUtil = (board, row) => {
+    if (row >= N_QUEEN_SIZE) return true;
+
+    for (let col = 0; col < N_QUEEN_SIZE; col++) {
+        if (isSafe(board, row, col)) {
+            board[row] = col;
+            if (solveCSPUtil(board, row + 1)) return true;
+            board[row] = -1; // Backtrack
+        }
+    }
+
+    return false;
+};
+
+export const solveWithCSP = () => {
+    const board = Array(N_QUEEN_SIZE).fill(-1);
+    if (solveCSPUtil(board, 0)) return board;
+    return null;
 };
